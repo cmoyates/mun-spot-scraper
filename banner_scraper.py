@@ -34,7 +34,7 @@ def get_banner(year, term, campus="%", faculty="%", prof="%", crn="%"):
 
     response = requests.post('https://selfservice.mun.ca/direct/hwswsltb.P_CourseResults', headers=headers, data=data)
 
-    f = open("demofile3.html", "w")
+    f = open("raw.html", "w")
     f.write(response.text)
     f.close()
 
@@ -50,19 +50,21 @@ def parse_banner():
         pre_tag = soup.find("pre")
         campuses_raw = pre_tag.text.split("Campus: ")
         campuses_raw.pop(0)
-        for campus_raw in campuses_raw[:1]:
+        for campus_raw in campuses_raw:
             campus = campus_raw.split("\n", 1)
             campus[0] = campus[0].strip()
             out[campus[0]] = parse_campus(campus[1])
 
     with open('data.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=4)
+    
+    return out
 
 def parse_campus(campus_info):
     subjects_raw = campus_info.split("Subject: ")
     subjects_raw.pop(0)
     subjects = {}
-    for subject_raw in subjects_raw[:1]:
+    for subject_raw in subjects_raw:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
         subjects[subject[0]] = parse_subject(subject[1])
@@ -80,14 +82,13 @@ def parse_subject(subject_info):
                 course_lines.append(subject_lines[j])
                 j += 1
             courses[subject_lines[i][5:9]] = parse_course(course_lines)
-            break
 
     return courses
 
 def parse_course(course_info):
     offerings = {}
     for i in range(len(course_info)):
-        if len(course_info[i]) > 38 and course_info[i][38] != " ":
+        if len(course_info[i]) > 38 and course_info[i][38] != " " and course_info[i][42:47].isdigit():
             offering_lines = [course_info[i]]
             j = i + 1
             while j < len(course_info) and len(course_info[j]) > 38 and course_info[j][38] == " ":
