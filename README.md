@@ -1,1 +1,1 @@
-"# mun-spot-scraper" 
+# mun-spot-scraper
