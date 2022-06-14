@@ -44,7 +44,7 @@ def get_banner(year, term, campus="%", faculty="%", prof="%", crn="%"):
 
 def parse_banner():
     out = {}
-    with open('demofile3.html') as f:
+    with open('raw.html') as f:
         text = f.read()
         soup = BeautifulSoup(text, features="html.parser")
         pre_tag = soup.find("pre")
