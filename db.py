@@ -1,63 +1,29 @@
-from urllib.parse import urlparse
-import psycopg2
+import pymongo
+from pymongo.mongo_client import MongoClient
 import os
-import json
-import traceback
 
+cluster = MongoClient(os.environ["MONGO_URI"])
 
-connection = None
-cursor = None
+db = cluster["MUNSpot"]
+banner_collection = db["Banner"]
 
-# https://stackoverflow.com/questions/15634092/connect-to-an-uri-in-postgres
-result = urlparse(os.environ["DATABASE_URL"])
-username = result.username
-password = result.password
-database = result.path[1:]
-hostname = result.hostname
-port = result.port
+def upload_banner(data):
 
-def upload_data(data):
-    try:
-        connection = psycopg2.connect(
-            database = database,
-            user = username,
-            password = password,
-            host = hostname,
-            port = port
-        )
+    all_offerings = []
 
-        cursor = connection.cursor()
+    for campus in data:
+        for subject in data[campus]:
+            for course in data[campus][subject]:
+                for offering in data[campus][subject][course]:
+                    offering_data = data[campus][subject][course][offering]
 
+                    offering_data["Campus"] = campus
+                    offering_data["Subject"] = subject
+                    offering_data["Number"] = course
+                    offering_data["Section"] = offering
 
-        insert_script = "INSERT INTO course (number, prof, crn, room, type, campus, times, notes, section, subject) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                    all_offerings.append(offering_data)
+    
+    print("Starting Banner upload...")
 
-        for campus in data:
-            for subject in data[campus]:
-                for course in data[campus][subject]:
-                    for offering in data[campus][subject][course]:
-                        offering_data = data[campus][subject][course][offering]
-
-                        offering_set = (
-                            course, 
-                            offering_data["Prof"], 
-                            offering_data["CRN"],
-                            offering_data["Room"],
-                            offering_data["Type"],
-                            campus,
-                            json.dumps(offering_data["Time"]),
-                            offering_data["Notes"],
-                            offering,
-                            subject
-                        )
-
-                        cursor.execute(insert_script, offering_set)
-
-        connection.commit()
-        
-    except Exception as error:
-        print(traceback.format_exc())
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if connection is not None:
-            connection.close()
+    banner_collection.insert_many(all_offerings)

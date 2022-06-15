@@ -2,14 +2,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from banner_scraper import parse_banner, get_banner
-from db import upload_data
+from banner_scraper import parse_banner
+from db import upload_banner
 
 def main():
-    get_banner(2022, 1)
-    '''data = parse_banner()
-    print("Beginning Upload...")
-    upload_data(data)'''
+    banner_data = parse_banner()
+    upload_banner(banner_data)
+
 
 if __name__ == "__main__":
     main()

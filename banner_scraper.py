@@ -50,7 +50,7 @@ def parse_banner():
         pre_tag = soup.find("pre")
         campuses_raw = pre_tag.text.split("Campus: ")
         campuses_raw.pop(0)
-        for campus_raw in campuses_raw:
+        for campus_raw in campuses_raw[:1]:
             campus = campus_raw.split("\n", 1)
             campus[0] = campus[0].strip()
             out[campus[0]] = parse_campus(campus[1])
@@ -64,7 +64,7 @@ def parse_campus(campus_info):
     subjects_raw = campus_info.split("Subject: ")
     subjects_raw.pop(0)
     subjects = {}
-    for subject_raw in subjects_raw:
+    for subject_raw in subjects_raw[:1]:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
         subjects[subject[0]] = parse_subject(subject[1])
@@ -82,6 +82,7 @@ def parse_subject(subject_info):
                 course_lines.append(subject_lines[j])
                 j += 1
             courses[subject_lines[i][5:9]] = parse_course(course_lines)
+            break
 
     return courses
 
@@ -95,6 +96,7 @@ def parse_course(course_info):
                 offering_lines.append(course_info[j])
                 j += 1
             offerings[course_info[i][38:41]] = parse_offering(offering_lines)
+            
 
     return offerings
 
@@ -124,7 +126,7 @@ def parse_offering(offering_info):
         "CRN": offering_info[0][42:47],
         "Room": room,
         "Type": offering_info[0][86:89],
-        "Time": time,
+        "Times": time,
         "Notes": notes
     }
 
