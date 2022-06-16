@@ -161,4 +161,7 @@ cython_debug/
 
 # Some temp files I'm using for testing
 data.json
-raw.html
+raw_banner.html
+raw_calendar.html
+raw_people.html
+raw_rmp.html

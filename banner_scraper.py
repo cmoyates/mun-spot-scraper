@@ -34,7 +34,7 @@ def get_banner(year, term, campus="%", faculty="%", prof="%", crn="%"):
 
     response = requests.post('https://selfservice.mun.ca/direct/hwswsltb.P_CourseResults', headers=headers, data=data)
 
-    f = open("raw.html", "w")
+    f = open("raw_banner.html", "w")
     f.write(response.text)
     f.close()
 
@@ -44,13 +44,13 @@ def get_banner(year, term, campus="%", faculty="%", prof="%", crn="%"):
 
 def parse_banner():
     out = {}
-    with open('raw.html') as f:
+    with open('raw_banner.html') as f:
         text = f.read()
         soup = BeautifulSoup(text, features="html.parser")
         pre_tag = soup.find("pre")
         campuses_raw = pre_tag.text.split("Campus: ")
         campuses_raw.pop(0)
-        for campus_raw in campuses_raw[:1]:
+        for campus_raw in campuses_raw:
             campus = campus_raw.split("\n", 1)
             campus[0] = campus[0].strip()
             out[campus[0]] = parse_campus(campus[1])
@@ -64,10 +64,17 @@ def parse_campus(campus_info):
     subjects_raw = campus_info.split("Subject: ")
     subjects_raw.pop(0)
     subjects = {}
-    for subject_raw in subjects_raw[:1]:
+
+    subject_names = {}
+
+    for subject_raw in subjects_raw:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
+        if subject_names.get(subject[0]) == None:
+            subject_names[subject[0]] = "noice"
         subjects[subject[0]] = parse_subject(subject[1])
+
+    print(list(subject_names.keys()))
 
     return subjects
 
@@ -82,7 +89,6 @@ def parse_subject(subject_info):
                 course_lines.append(subject_lines[j])
                 j += 1
             courses[subject_lines[i][5:9]] = parse_course(course_lines)
-            break
 
     return courses
 
