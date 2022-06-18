@@ -1,4 +1,4 @@
-# This is from https://github.com/jackharrhy/yaMUN/blob/master/src/backend/scrape/calendar/listings.ts so full credit to those guys for this
+# The bulk of this is from https://github.com/jackharrhy/yaMUN/blob/master/src/backend/scrape/calendar/listings.ts so most of the credit to those guys for this
 
 CALENDAR_LISTINGS = {
   "BIOC": ["SCI-2563"],
@@ -30,18 +30,17 @@ CALENDAR_LISTINGS = {
   "RUSS": ["ARTS-6973"],
   "SPAN": ["ARTS-10230"],
   "UNIV": ["ARTS-7313"],
+  "CIV": ["ENGI-0037"],
+  "ECE": ["ENGI-0534"],
+  "ME": ["ENGI-0578"],
+  "ONAE": ["ENGI-0605"],
+  "PROC": ["ENGI-0643"],
   "ENGI": [
-    "ENGI-0037",
-    "ENGI-0504",
     "ENGI-0517",
-    "ENGI-0534",
-    "ENGI-0554",
-    "ENGI-0578",
-    "ENGI-0605",
-    "ENGI-0643",
-    "ENGI-1727",
+    "ENGI-0495",
+    "ENGI-2134"
   ],
-  "BUSI": ["BUSI-1261", "BUSI-0288", "BUSI-0401", "BUSI-0419"],
+  "BUSI": [],
   "ED": ["EDUC-0443"],
   "HKR": ["HKR-0366"],
   "MED": ["MED-0376", "MED-0777", "MED-0784", "MED-0791", "MED-0401"],
