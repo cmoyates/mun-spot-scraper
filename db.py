@@ -19,10 +19,10 @@ def upload_banner(data):
                 for offering in data[campus][subject][course]:
                     offering_data = data[campus][subject][course][offering]
 
-                    offering_data["Campus"] = campus
-                    offering_data["Subject"] = subject
-                    offering_data["Number"] = course
-                    offering_data["Section"] = offering
+                    offering_data["campus"] = campus
+                    offering_data["subject"] = subject
+                    offering_data["number"] = course
+                    offering_data["section"] = offering
 
                     all_offerings.append(offering_data)
     

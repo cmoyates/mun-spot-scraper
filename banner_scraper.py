@@ -65,23 +65,17 @@ def parse_campus(campus_info):
     subjects_raw.pop(0)
     subjects = {}
 
-    subject_names = {}
-
     for subject_raw in subjects_raw:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
-        if subject_names.get(subject[0]) == None:
-            subject_names[subject[0]] = "noice"
         subjects[subject[0]] = parse_subject(subject[1])
-
-    print(list(subject_names.keys()))
 
     return subjects
 
 def parse_subject(subject_info):
     courses = {}
     subject_lines = subject_info.split("\n")
-    for i in range(len(subject_lines)):
+    for i in range(len(subject_lines))[0:]:
         if len(subject_lines[i]) > 0 and subject_lines[i][0] != " ":
             course_lines = [subject_lines[i]]
             j = i + 1
@@ -101,24 +95,24 @@ def parse_course(course_info):
             while j < len(course_info) and len(course_info[j]) > 38 and course_info[j][38] == " ":
                 offering_lines.append(course_info[j])
                 j += 1
-            offerings[course_info[i][38:41]] = parse_offering(offering_lines)
+            offerings[course_info[i][38:41]] = parse_offering(offering_lines, course_info[0][:5].strip())
             
 
     return offerings
 
-def parse_offering(offering_info):
+def parse_offering(offering_info, subject_code):
     
     room = offering_info[0][77:85].strip()
     room = room if room else "N/A"
     
     time = {
-        "Sunday": [],
-        "Monday": [],
-        "Tuesday": [],
-        "Wednesday": [],
-        "Thursday": [],
-        "Friday": [],
-        "Saturday": []
+        "sunday": [],
+        "monday": [],
+        "tuesday": [],
+        "wednesday": [],
+        "thursday": [],
+        "friday": [],
+        "saturday": []
     }
     notes = []
     for line in offering_info:
@@ -128,21 +122,22 @@ def parse_offering(offering_info):
             notes.append(line.strip())
 
     offering = {
-        "Prof": offering_info[0][148:].strip(),
-        "CRN": offering_info[0][42:47],
-        "Room": room,
-        "Type": offering_info[0][86:89],
-        "Times": time,
-        "Notes": notes
+        "prof": offering_info[0][148:].strip(),
+        "crn": offering_info[0][42:47],
+        "room": room,
+        "type": offering_info[0][86:89],
+        "times": time,
+        "notes": notes,
+        "subject_code": subject_code
     }
 
     return offering
 
 def parse_time(time_string, time_dict):
-    if time_string[0] == "M": time_dict["Monday"].append(time_string[14:])
-    if time_string[2] == "T": time_dict["Tuesday"].append(time_string[14:])
-    if time_string[4] == "W": time_dict["Wednesday"].append(time_string[14:])
-    if time_string[6] == "R": time_dict["Thursday"].append(time_string[14:])
-    if time_string[8] == "F": time_dict["Friday"].append(time_string[14:])
-    if time_string[10] == "S": time_dict["Saturday"].append(time_string[14:])
-    if time_string[12] == "U": time_dict["Sunday"].append(time_string[14:])
+    if time_string[0] == "M": time_dict["monday"].append(time_string[14:])
+    if time_string[2] == "T": time_dict["tuesday"].append(time_string[14:])
+    if time_string[4] == "W": time_dict["wednesday"].append(time_string[14:])
+    if time_string[6] == "R": time_dict["thursday"].append(time_string[14:])
+    if time_string[8] == "F": time_dict["friday"].append(time_string[14:])
+    if time_string[10] == "S": time_dict["saturday"].append(time_string[14:])
+    if time_string[12] == "U": time_dict["sunday"].append(time_string[14:])
