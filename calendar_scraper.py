@@ -20,10 +20,10 @@ def get_calendar():
                 description = course.find("div", {"class": "courseDesc"}).find("p", {"class": "inlinePara"})
                 description = " - No available description." if description == None else description.text.strip()
                 course_data = {
-                    "Name": name,
-                    "Number": number,
-                    "Description": f"{name} {description}",
-                    "Subject": key
+                    "name": name,
+                    "number": number,
+                    "description": f"{name} {description}",
+                    "subject": key
                 }
                 course_list.append(course_data)
     
