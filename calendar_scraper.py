@@ -32,7 +32,5 @@ def get_calendar():
                     attribute_obj[attribute_parts[0]] = attribute_parts[1]
                 course_data["attributes"] = attribute_obj
                 course_list.append(course_data)
-            break
-        break
     
     return course_list
