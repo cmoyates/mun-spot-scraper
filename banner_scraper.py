@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+from db import people_collection
 
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -68,11 +69,11 @@ def parse_campus(campus_info):
     for subject_raw in subjects_raw:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
-        subjects[subject[0]] = parse_subject(subject[1])
+        subjects[subject[0]] = parse_subject(subject[1], subject[0])
 
     return subjects
 
-def parse_subject(subject_info):
+def parse_subject(subject_info, subject_name):
     courses = {}
     subject_lines = subject_info.split("\n")
     for i in range(len(subject_lines))[0:]:
@@ -82,11 +83,11 @@ def parse_subject(subject_info):
             while len(subject_lines[j]) > 0 and subject_lines[j][0] == " ":
                 course_lines.append(subject_lines[j])
                 j += 1
-            courses[subject_lines[i][5:9]] = parse_course(course_lines)
+            courses[subject_lines[i][5:9]] = parse_course(course_lines, subject_name)
 
     return courses
 
-def parse_course(course_info):
+def parse_course(course_info, subject_name):
     offerings = {}
     for i in range(len(course_info)):
         if len(course_info[i]) > 38 and course_info[i][38] != " " and course_info[i][42:47].isdigit():
@@ -95,12 +96,11 @@ def parse_course(course_info):
             while j < len(course_info) and len(course_info[j]) > 38 and course_info[j][38] == " ":
                 offering_lines.append(course_info[j])
                 j += 1
-            offerings[course_info[i][38:41]] = parse_offering(offering_lines, course_info[0][:5].strip())
-            
+            offerings[course_info[i][38:41]] = parse_offering(offering_lines, course_info[0][:5].strip(), subject_name)
 
     return offerings
 
-def parse_offering(offering_info, subject_code):
+def parse_offering(offering_info, subject_code, subject_name):
     
     room = offering_info[0][77:85].strip()
     room = room if room else "N/A"
@@ -121,14 +121,17 @@ def parse_offering(offering_info, subject_code):
         else:
             notes.append(line.strip())
 
+    prof = offering_info[0][148:].strip()
+
     offering = {
-        "prof": offering_info[0][148:].strip(),
+        "prof": prof,
+        "prof_full": getProfFullName(prof, subject_name),
         "crn": offering_info[0][42:47],
         "room": room,
         "type": offering_info[0][86:89],
         "times": time,
         "notes": notes,
-        "subject_code": subject_code
+        "subject_code": subject_code,
     }
 
     return offering
@@ -141,3 +144,60 @@ def parse_time(time_string, time_dict):
     if time_string[8] == "F": time_dict["friday"].append(time_string[14:])
     if time_string[10] == "S": time_dict["saturday"].append(time_string[14:])
     if time_string[12] == "U": time_dict["sunday"].append(time_string[14:])
+
+def getProfFullName(prof, faculty):
+    prof_name_parts = prof.split(" ", 1)
+    if (len(prof_name_parts) < 2):
+        return prof
+
+    test = people_collection.aggregate([{
+                    "$search": {
+                        "index": 'People Search',
+                        "compound": {
+                            "should": [
+                                {
+                                    "text": {
+                                        "query": prof_name_parts[0],
+                                        "path": "fname",
+                                    }
+                                },
+                                {
+                                    "text": {
+                                        "query": prof_name_parts[1],
+                                        "path": "lname",
+                                        "score": {
+                                            "boost": {
+                                                "value": 5
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "text": {
+                                        "query": faculty,
+                                        "path": "department",
+                                        "score": {
+                                            "boost": {
+                                                "value": 5
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }, {
+                    "$limit": 1
+                }
+            ])
+    
+    test = list(test)
+    if len(test) < 1:
+        return prof
+    first_name = test[0]["fname"]
+    last_name = test[0]["lname"]
+    if first_name[0] == prof_name_parts[0][0] and last_name in prof_name_parts[1]:
+        
+        return f"{first_name} {last_name}"
+    else:
+        return prof
