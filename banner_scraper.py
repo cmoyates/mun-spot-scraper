@@ -69,7 +69,8 @@ def parse_campus(campus_info):
     for subject_raw in subjects_raw:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
-        subjects[subject[0]] = parse_subject(subject[1], subject[0])
+        if subject[0] == "Chemistry":
+            subjects[subject[0]] = parse_subject(subject[1], subject[0])
 
     return subjects
 
@@ -77,10 +78,12 @@ def parse_subject(subject_info, subject_name):
     courses = {}
     subject_lines = subject_info.split("\n")
     for i in range(len(subject_lines))[0:]:
-        if len(subject_lines[i]) > 0 and subject_lines[i][0] != " ":
+        if len(subject_lines[i]) > 0 and subject_lines[i][0] != " " and subject_lines[i][10:20] != "Laboratory":
+            if subject_lines[i][5:9] != "1050":
+                continue
             course_lines = [subject_lines[i]]
             j = i + 1
-            while len(subject_lines[j]) > 0 and subject_lines[j][0] == " ":
+            while len(subject_lines[j]) > 0 and (subject_lines[j][0] == " " or subject_lines[j][10:20] == "Laboratory"):
                 course_lines.append(subject_lines[j])
                 j += 1
             courses[subject_lines[i][5:9]] = parse_course(course_lines, subject_name)
@@ -97,7 +100,7 @@ def parse_course(course_info, subject_name):
                 offering_lines.append(course_info[j])
                 j += 1
             offerings[course_info[i][38:41]] = parse_offering(offering_lines, course_info[0][:5].strip(), subject_name)
-
+        break
     return offerings
 
 def parse_offering(offering_info, subject_code, subject_name):
@@ -115,23 +118,31 @@ def parse_offering(offering_info, subject_code, subject_name):
         "saturday": []
     }
     notes = []
+    associated_sections = []
+
     for line in offering_info:
+        is_note = True
         if line[67:70].isdigit() and line[72:76].isdigit():
+            is_note = False
             parse_time(line[53:76], time)
-        else:
+        if line[92:95].isdigit() and line[91]==" " and line[95]==" ":
+            is_note = False
+            parse_associated_sections(line[92:103], associated_sections)
+        if is_note:
             notes.append(line.strip())
 
     prof = offering_info[0][148:].strip()
 
     offering = {
         "prof": prof,
-        "prof_full": getProfFullName(prof, subject_name),
+        "prof_full": get_prof_full_name(prof, subject_name),
         "crn": offering_info[0][42:47],
         "room": room,
         "type": offering_info[0][86:89],
         "times": time,
         "notes": notes,
         "subject_code": subject_code,
+        "associated_sections": associated_sections
     }
 
     return offering
@@ -145,7 +156,7 @@ def parse_time(time_string, time_dict):
     if time_string[10] == "S": time_dict["saturday"].append(time_string[14:])
     if time_string[12] == "U": time_dict["sunday"].append(time_string[14:])
 
-def getProfFullName(prof, faculty):
+def get_prof_full_name(prof, faculty):
     prof_name_parts = prof.split(" ", 1)
     if (len(prof_name_parts) < 2):
         return prof
@@ -201,3 +212,6 @@ def getProfFullName(prof, faculty):
         return f"{first_name} {last_name}"
     else:
         return prof
+    
+def parse_associated_sections(associated_sections_string, associated_sections_list):
+    associated_sections_list += associated_sections_string.strip().split(" ")
