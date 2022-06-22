@@ -22,9 +22,17 @@ def get_calendar():
                 course_data = {
                     "name": name,
                     "number": number,
-                    "description": f"{name} {description}",
+                    "description": description,
                     "subject": key
                 }
+                attributes = course.find_all("p", {"class", "courseAttrs"})
+                attribute_obj = {}
+                for attribute in attributes:
+                    attribute_parts = attribute.text.strip().split(": ")
+                    attribute_obj[attribute_parts[0]] = attribute_parts[1]
+                course_data["attributes"] = attribute_obj
                 course_list.append(course_data)
+            break
+        break
     
     return course_list
