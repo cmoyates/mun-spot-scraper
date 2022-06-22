@@ -35,29 +35,27 @@ def get_banner(year, term, campus="%", faculty="%", prof="%", crn="%"):
 
     response = requests.post('https://selfservice.mun.ca/direct/hwswsltb.P_CourseResults', headers=headers, data=data)
 
-    f = open("raw_banner.html", "w")
+    '''f = open("raw_banner.html", "w")
     f.write(response.text)
-    f.close()
+    f.close()'''
 
-    soup = BeautifulSoup(response.text, features="html.parser")
-    return soup
+    return response.text
 
 
-def parse_banner():
+def parse_banner(text):
     out = {}
-    with open('raw_banner.html') as f:
-        text = f.read()
-        soup = BeautifulSoup(text, features="html.parser")
-        pre_tag = soup.find("pre")
-        campuses_raw = pre_tag.text.split("Campus: ")
-        campuses_raw.pop(0)
-        for campus_raw in campuses_raw:
-            campus = campus_raw.split("\n", 1)
-            campus[0] = campus[0].strip()
-            out[campus[0]] = parse_campus(campus[1])
 
-    with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(out, f, ensure_ascii=False, indent=4)
+    soup = BeautifulSoup(text, features="html.parser")
+    pre_tag = soup.find("pre")
+    campuses_raw = pre_tag.text.split("Campus: ")
+    campuses_raw.pop(0)
+    for campus_raw in campuses_raw:
+        campus = campus_raw.split("\n", 1)
+        campus[0] = campus[0].strip()
+        out[campus[0]] = parse_campus(campus[1])
+
+    '''with open('data.json', 'w', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False, indent=4)'''
     
     return out
 
@@ -69,8 +67,7 @@ def parse_campus(campus_info):
     for subject_raw in subjects_raw:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
-        if subject[0] == "Biochemistry":
-            subjects[subject[0]] = parse_subject(subject[1], subject[0])
+        subjects[subject[0]] = parse_subject(subject[1], subject[0])
 
     return subjects
 
@@ -79,8 +76,6 @@ def parse_subject(subject_info, subject_name):
     subject_lines = subject_info.split("\n")
     for i in range(len(subject_lines))[0:]:
         if len(subject_lines[i]) > 0 and subject_lines[i][0] != " " and subject_lines[i][10:20] != "Laboratory":
-            if subject_lines[i][5:9] != "4210":
-                continue
             course_lines = [subject_lines[i]]
             j = i + 1
             while len(subject_lines[j]) > 0 and (subject_lines[j][0] == " " or subject_lines[j][10:20] == "Laboratory"):
@@ -92,6 +87,7 @@ def parse_subject(subject_info, subject_name):
 
 def parse_course(course_info, subject_name):
     offerings = {}
+
     for i in range(len(course_info)):
         if len(course_info[i]) > 38 and course_info[i][38] != " " and course_info[i][42:47].isdigit():
             offering_lines = [course_info[i]]
@@ -100,7 +96,7 @@ def parse_course(course_info, subject_name):
                 offering_lines.append(course_info[j])
                 j += 1
             offerings[course_info[i][38:41]] = parse_offering(offering_lines, course_info[0][:5].strip(), subject_name)
-        break
+
     return offerings
 
 def parse_offering(offering_info, subject_code, subject_name):
@@ -223,6 +219,3 @@ def get_prof_full_name(prof, faculty):
     
 def parse_associated_sections(associated_sections_string, associated_sections_list):
     associated_sections_list += associated_sections_string.strip().split(" ")
-
-def parse_notes(notes_string, notes_list):
-    print(notes_string)

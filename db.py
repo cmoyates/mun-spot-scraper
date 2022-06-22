@@ -9,7 +9,7 @@ banner_collection = db["Banner"]
 calendar_collection = db["Calendar"]
 people_collection = db["People"]
 
-def upload_banner(data):
+def upload_banner(data, year, term):
 
     all_offerings = []
 
@@ -23,6 +23,8 @@ def upload_banner(data):
                     offering_data["subject"] = subject
                     offering_data["number"] = course
                     offering_data["section"] = offering
+                    offering_data["year"] = year
+                    offering_data["term"] = term
 
                     all_offerings.append(offering_data)
     
