@@ -37,3 +37,7 @@ def upload_calendar(data):
 def upload_people(data):
     print("Starting People upload...")
     people_collection.insert_many(data)
+
+def delete_all_in_collection(collection_name):
+    if collection_name in db.list_collection_names():
+        db[collection_name].delete_many({})
