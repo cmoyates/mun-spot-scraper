@@ -69,7 +69,7 @@ def parse_campus(campus_info):
     for subject_raw in subjects_raw:
         subject = subject_raw.split("\n", 1)
         subject[0] = subject[0].strip()
-        if subject[0] == "Chemistry":
+        if subject[0] == "Biochemistry":
             subjects[subject[0]] = parse_subject(subject[1], subject[0])
 
     return subjects
@@ -79,7 +79,7 @@ def parse_subject(subject_info, subject_name):
     subject_lines = subject_info.split("\n")
     for i in range(len(subject_lines))[0:]:
         if len(subject_lines[i]) > 0 and subject_lines[i][0] != " " and subject_lines[i][10:20] != "Laboratory":
-            if subject_lines[i][5:9] != "1050":
+            if subject_lines[i][5:9] != "4210":
                 continue
             course_lines = [subject_lines[i]]
             j = i + 1
@@ -119,6 +119,8 @@ def parse_offering(offering_info, subject_code, subject_name):
     }
     notes = []
     associated_sections = []
+    cross_listed = []
+    reserved_for = {}
 
     for line in offering_info:
         is_note = True
@@ -129,7 +131,11 @@ def parse_offering(offering_info, subject_code, subject_name):
             is_note = False
             parse_associated_sections(line[92:103], associated_sections)
         if is_note:
-            notes.append(line.strip())
+            if line[42:55] == "CROSS LISTED:":
+                cross_listed_line = line[55:].strip()
+                cross_listed = [cross_listed_line[i:i+13] for i in range(0, len(cross_listed_line), 14)]
+            elif line[57:63] in ["DEGREE", "MAJOR ", "MINOR "]:
+                reserved_for[line[57:63].strip().lower()] = line[63:].strip().split()
 
     prof = offering_info[0][148:].strip()
 
@@ -142,7 +148,9 @@ def parse_offering(offering_info, subject_code, subject_name):
         "times": time,
         "notes": notes,
         "subject_code": subject_code,
-        "associated_sections": associated_sections
+        "associated_sections": associated_sections,
+        "cross_listed": cross_listed,
+        "reserved_for": reserved_for
     }
 
     return offering
@@ -215,3 +223,6 @@ def get_prof_full_name(prof, faculty):
     
 def parse_associated_sections(associated_sections_string, associated_sections_list):
     associated_sections_list += associated_sections_string.strip().split(" ")
+
+def parse_notes(notes_string, notes_list):
+    print(notes_string)
