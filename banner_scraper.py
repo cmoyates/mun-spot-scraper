@@ -132,7 +132,9 @@ def parse_offering(offering_info, subject_code, subject_name):
                 cross_listed = [cross_listed_line[i:i+13] for i in range(0, len(cross_listed_line), 14)]
             elif line[57:63] in ["DEGREE", "MAJOR ", "MINOR "]:
                 reserved_for[line[57:63].strip().lower()] = line[63:].strip().split()
-
+            else:
+                notes.append(line.strip())
+                
     prof = offering_info[0][148:].strip()
 
     offering = {
